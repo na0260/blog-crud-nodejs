@@ -14,7 +14,7 @@ export const index = async (req, res) => {
         content: 'blogs/index',
         locals: {
             blogs,
-            success: req.query.success === '1' ? 'Blog created successfully!' : null,
+            success: req.query.success === '1' ? 'Blog saved successfully!' : null,
         }
     });
 };
@@ -37,7 +37,7 @@ export const create = (req, res) => {
 export const store = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        res.status(422).render('layout', {
+        return res.status(422).render('layout', {
             title: 'Create Blog',
             content: 'blogs/create',
             locals: {
@@ -45,7 +45,6 @@ export const store = async (req, res) => {
                 old: req.body
             }
         });
-        return;
     }
 
     try {
@@ -62,7 +61,7 @@ export const store = async (req, res) => {
         res.redirect('/blog/list?success=1');
     }catch (error) {
         console.error('Error saving blog:', error);
-        res.status(500).render('layout', {
+        return res.status(500).render('layout', {
             title: 'Create Blog',
             content: 'blogs/create',
             locals: {
@@ -70,20 +69,61 @@ export const store = async (req, res) => {
                 old: req.body
             }
         });
-        return;
     }
 };
 
-export const edit = (req, res) => {
+export const edit = async (req, res) => {
+    const blogs = await getBlogs();
+    const blog = blogs.find(b => b.id == req.params.id);
 
+    if (!blog) {
+        return res.status(404).render('errors/404');
+    }
+
+    res.render('layout', {
+        title: 'Edit Blog',
+        content: 'blogs/edit',
+        locals: {
+            blog,
+            errors: [],
+            old: {},
+        }
+    });
 };
 
-export const update = (req, res) => {
+export const update = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render('layout', {
+            title: 'Edit Blog',
+            content: 'blogs/edit',
+            locals: {
+                blog: { id: req.params.id, title: req.body.title, description: req.body.description },
+                errors: errors.array(),
+                old: req.body
+            }
+        });
+    }
 
+    const blogs = await getBlogs();
+    const blogIndex = blogs.findIndex(b => b.id == req.params.id);
+
+    if (blogIndex === -1) {
+        return res.status(404).send('Blog not found');
+    }
+
+    blogs[blogIndex].title = req.body.title;
+    blogs[blogIndex].description = req.body.description;
+
+    await savePosts(blogs);
+    res.redirect('/blog/list?success=1');
 };
 
-export const destroy = (req, res) => {
-
+export const destroy = async (req, res) => {
+    const blogs = await getBlogs();
+    const updatedBlogs = blogs.filter(b => b.id != req.params.id);
+    await savePosts(updatedBlogs);
+    res.redirect('/blog/list?success=1');
 };
 
 const getBlogs = async () => {

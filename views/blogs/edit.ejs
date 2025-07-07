@@ -1,0 +1,27 @@
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Edit Blog</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">blog</li>
+        <li class="breadcrumb-item active">edit</li>
+    </ol>
+    <form method="POST" action="/blog/update/<%= blog.id %>">
+        <% if (errors) { %>
+            <ul class="text-bg-danger">
+                <% errors.forEach(error => { %>
+                    <li><%= error.msg %></li>
+                <% }) %>
+            </ul>
+        <% } %>
+        <div class="row">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input name="title" type="text" class="form-control" id="title" value="<%= old?.title || blog.title %>" placeholder="Enter blog title" />
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea name="description" class="form-control" id="description" rows="3" placeholder="Enter Blog Description"><%= old?.description || blog.description %></textarea>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>

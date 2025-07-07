@@ -12,5 +12,13 @@ router.post('/store', [
     ],
     BlogController.store
 );
+router.get('/edit/:id', BlogController.edit);
+router.post('/update/:id', [
+        body('title').notEmpty().withMessage('Title is required'),
+        body('description').notEmpty().withMessage('Description is required'),
+    ],
+    BlogController.update
+);
+router.post('/delete/:id', BlogController.destroy);
 
 export default router;

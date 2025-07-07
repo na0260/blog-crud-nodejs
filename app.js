@@ -23,6 +23,17 @@ app.get('/', (req, res) => {
 
 app.use('/blog', blogRoutes);
 
+app.use((req, res) => {
+    if (req.originalUrl.startsWith('/api')) {
+        return res.status(404).json({ error: 'API route not found' });
+    }
+
+    res.status(404).render('errors/404', {
+        title: '404 - Page Not Found',
+        content: null,
+    });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port,()=>{
     console.log(`Server is running at http://localhost:${port}`);
