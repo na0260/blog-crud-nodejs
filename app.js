@@ -2,7 +2,10 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import blogRoutes from './routes/blog.routes.js';
+import session from 'express-session';
+import authRoutes from "./routes/auth.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import {isAuthenticated} from "./middlewares/auth.js";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -13,15 +16,19 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: 'mysecret',
+    resave: false,
+    saveUninitialized: false,
+}));
 
-app.get('/', (req, res) => {
-    res.render('layout', {
-        title: 'Home',
-        content: 'index',
-    });
+app.use((req, res, next) => {
+    res.locals.authUser = req.session.user || null;
+    next();
 });
 
-app.use('/blog', blogRoutes);
+app.use('/', authRoutes);
+app.use('/admin',isAuthenticated,adminRoutes);
 
 app.use((req, res) => {
     if (req.originalUrl.startsWith('/api')) {
